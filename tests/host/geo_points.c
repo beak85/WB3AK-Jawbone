@@ -16,8 +16,8 @@ static const struct { const char *name; double lat, lon; int expect; } pts[] = {
     {"Sanaa",                15.369,  44.191, 1},
     {"Socotra south coast",  12.300,  53.900, 1},
     {"Pyongyang",            39.039, 125.762, 1},
-    {"NK northern tip",      43.005, 129.800, 1},   /* north of 43N: missed by PR #17 */
-    {"Korea Bay (NK waters)",39.700, 123.950, 1},   /* west of 124E: missed by PR #17 */
+    {"NK northern tip",      43.005, 129.800, 1},   /* north of 43N, square PN43 */
+    {"Korea Bay (NK waters)",39.700, 123.950, 1},   /* west of 124E, square PM19 */
     /* must NOT be fenced */
     {"Paris",                48.857,   2.352, 0},
     {"Brussels",             50.850,   4.350, 0},
