@@ -996,6 +996,45 @@ char letterize(int x) {
 	return (char) 23 + 65; /*KC3LBR 07/23/24   an alternate/redundant fix to the one below, this clamps the returned characters at 'X' or lower. The original code sometimes returned a Y for 5th or 6 char, which is invalid*/
 }
 
+/* ---------------- GEOFENCE ----------------
+   4-char Maidenhead squares (2 deg lon x 1 deg lat) where the tracker must not transmit.
+   Generated from Natural Earth 1:10m country borders: every square touching the country's
+   land, its 12 nm territorial sea, or a further 25 km margin (~8 min of drift at 190 km/h,
+   i.e. one full TX cycle) is listed. Checked once per TX cycle, immediately before the VFO
+   is enabled (SEQ 60), so it covers the first transmission after boot as well. */
+static const char *forbidden_grids[] = {
+    /* United Kingdom: land + 12 nm territorial sea + 25 km drift margin (63 squares) */
+    "IN69","IN79","IN89","IO27","IO37","IO38","IO53","IO54","IO55","IO56","IO57","IO58",
+    "IO60","IO63","IO64","IO65","IO66","IO67","IO68","IO70","IO71","IO72","IO73","IO74",
+    "IO75","IO76","IO77","IO78","IO79","IO80","IO81","IO82","IO83","IO84","IO85","IO86",
+    "IO87","IO88","IO89","IO90","IO91","IO92","IO93","IO94","IO95","IO96","IO97","IO98",
+    "IO99","IP80","IP90","IP91","JO00","JO01","JO02","JO03","JO04","JO10","JO11","JO12",
+    "JO13","JP00","JP01",
+    /* Yemen: land + 12 nm territorial sea + 25 km drift margin (45 squares) */
+    "LK12","LK13","LK14","LK15","LK16","LK17","LK22","LK23","LK24","LK25","LK26","LK27",
+    "LK32","LK33","LK34","LK35","LK36","LK37","LK38","LK43","LK44","LK45","LK46","LK47",
+    "LK48","LK49","LK51","LK52","LK54","LK55","LK56","LK57","LK58","LK59","LK61","LK62",
+    "LK63","LK65","LK66","LK67","LK68","LK69","LK71","LK72","LK73",
+    /* North Korea: land + 12 nm territorial sea + 25 km drift margin (24 squares) */
+    "PM19","PM27","PM28","PM29","PM37","PM38","PM39","PM47","PM48","PM49","PN10","PN20",
+    "PN21","PN30","PN31","PN32","PN40","PN41","PN42","PN43","PN50","PN51","PN52","PN53",
+};
+
+int geofence_square_count(void)
+{
+    return (int)(sizeof(forbidden_grids)/sizeof(forbidden_grids[0]));
+}
+
+int is_position_geofenced(double lat, double lon)
+{
+    char grid4[5];
+    strncpy(grid4, get_mh(lat, lon, 4), 4);
+    grid4[4] = 0;
+    for (unsigned i = 0; i < sizeof(forbidden_grids)/sizeof(forbidden_grids[0]); i++)
+        if (strncmp(grid4, forbidden_grids[i], 4) == 0) return 1;
+    return 0;
+}
+
 char* get_mh(double lat, double lon, int size) {
     static char locator[11];
     double LON_F[]={20,2.0,0.0833333333,0.008333333,0.0003472222222222}; /*KC3LBR 07/23/24   increased resolution of 1/12 constant to prevent problems*/

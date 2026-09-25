@@ -1,3 +1,7 @@
 build/*
 !build/JAWBONE.uf2
 CMakeCache.txt
+tools/geofence/*.geojson
+tests/host/*.inc
+tests/host/sched_harness
+tests/host/geo_points

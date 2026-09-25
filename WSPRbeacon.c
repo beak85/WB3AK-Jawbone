@@ -276,10 +276,21 @@ int WSPRbeaconTxScheduler(WSPRbeaconContext *pctx, int verbose)   // called ever
 		else SEQ=40;  //jump back to check if GPS got lost			
 	}
 
+	if (SEQ==60)   //GEOFENCE: single choke point before any RF. Covers both the first-TX-after-boot path (SEQ 35) and the normal path (SEQ 50)
+	{
+		double geo_lat = 1e-7 * (double)pctx->_pTX->_p_oscillator->_pGPStime->_time_data._i64_lat_100k;
+		double geo_lon = 1e-7 * (double)pctx->_pTX->_p_oscillator->_pGPStime->_time_data._i64_lon_100k;
+		if (is_position_geofenced(geo_lat, geo_lon))
+		{
+			if (pctx->_txSched.verbosity>=1) printf("TX cycle suppressed by geofence (%.4s)\n", get_mh(geo_lat, geo_lon, 4));
+			SEQ=40;   //skip this whole cycle; GPS stays on, check again at next cycle start
+		}
+	}
+
 	if (SEQ==60) //GPS Off, VFO ON. also convert last known good positions to characters
 	{
 
-    char ten_char_grid[10];
+    char ten_char_grid[11];
 
 		//the next line extracts 10 grid chars from actuall gps positions
 	snprintf(ten_char_grid,11,get_mh((1e-7 * (double)pctx->_pTX->_p_oscillator->_pGPStime->_time_data._i64_lat_100k), (1e-7 * (double)pctx->_pTX->_p_oscillator->_pGPStime->_time_data._i64_lon_100k), 10));
@@ -604,7 +615,7 @@ void WSPRbeaconDumpContext(const WSPRbeaconContext *pctx)  //called ~ every 20 s
 /// @remark It uses third-party project https://github.com/sp6q/maidenhead .
 char *WSPRbeaconGetLastQTHLocator(WSPRbeaconContext *pctx)                   //called every second or so
 {
-    char ten_char_grid[10];
+    char ten_char_grid[11];
     double lat = 1e-7 * (double)pctx->_pTX->_p_oscillator->_pGPStime->_time_data._i64_lat_100k;  //Roman's original code used 1e-5 instead (bug)
     double lon = 1e-7 * (double)pctx->_pTX->_p_oscillator->_pGPStime->_time_data._i64_lon_100k;  //Roman's original code used 1e-5 instead (bug)
 /*    lon+=(double)0.3 + (0.03*(double)pctx->_txSched.minutes_since_boot);

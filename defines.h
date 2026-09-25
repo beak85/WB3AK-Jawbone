@@ -295,6 +295,8 @@ void Core1Entry(void);
 //maidenhead
 
 char* get_mh(double lat, double lon, int size);
+int is_position_geofenced(double lat, double lon);
+int geofence_square_count(void);
 char* complete_mh(char* locator);
 double mh2lon(char* locator);
 double mh2lat(char* locator);

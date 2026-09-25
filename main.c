@@ -724,7 +724,7 @@ check_data_validity_and_set_defaults(); //added may 2025, will this cause proble
 
 int band_as_int=_band[0]-'A';       
 printf(CLEAR_SCREEN);
-printf("JAWBONE (Just Another Wspr Beacon Of Noisy Electronics) by KC3LBR,  version (new CT may 2026): %s %s\n\n",__DATE__ ,__TIME__);
+printf("JAWBONE (Just Another Wspr Beacon Of Noisy Electronics) by KC3LBR,  version (new CT may 2026) + geofence v1: %s %s\n\n",__DATE__ ,__TIME__);
 printf(UNDERLINE_ON);printf(BRIGHT);
 printf("\n\nCurrent values:\n");printf(UNDERLINE_OFF);printf(NORMAL);
 
@@ -739,6 +739,7 @@ printf("Verbosity:%s\n\t",_verbosity);
 printf("Optional debug:%s\n\t",_Optional_Debug);
 //printf("custom Pcb IO mappings:%s\n\t",_custom_PCB);
 printf("Telemetry config:%s   (please set to '---' if unused)\n",_DEXT_config);
+printf("\tGeofence: no TX over UK, Yemen, North Korea (%d grid squares, see README)\n",geofence_square_count());
 //printf("Klock speed (temp) :%sMhz  \n",_Klock_speed);
 /*printf("Datalog mode:%s\n\t",_Datalog_mode);
 printf("Battery (low power) mode:%s\n\t",_battery_mode);
