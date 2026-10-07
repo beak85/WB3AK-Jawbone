@@ -16,8 +16,8 @@
 - tabbing wire
 
 # cutting antennas and support lines
-  -weigh tubes
-  -17ft
+  - weigh tubes
+  - 17ft
   
 # assemble payload
 
