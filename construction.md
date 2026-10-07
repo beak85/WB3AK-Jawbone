@@ -1,5 +1,6 @@
 # Configuration
 
+- installing firmware
 - putty
 - settings to use
 
