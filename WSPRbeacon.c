@@ -135,7 +135,7 @@ WSPRbeaconContext *WSPRbeaconInit(const char *pcallsign, const char *pgridsquare
     p->_u8_txpower = txpow_dbm;
     p->_pTX = TxChannelInit(682667, 0, RfGen);  			  //bit_period_us Period of data bits, sets up ISR for bit banging WSPR
 	OLD_GPS_active_status=0;
-	gpio_put(VFO_ENABLE_PIN,1); sleep_ms(1);gpio_put(GPS_ENABLE_PIN,0);      // power on GPS, power off VFO
+	gpio_put(VFO_ENABLE_PIN,1); sleep_ms(1);gps_power_on_soft();      // power off VFO, power on GPS (PWM soft start, see utilities.c)
 
 	for (int i=0;i < 10;i++) schedule[i]=-1;
 	p->_txSched.minutes_since_boot=0;
@@ -187,7 +187,7 @@ int WSPRbeaconTxScheduler(WSPRbeaconContext *pctx, int verbose)   // called ever
 	
 	if (SEQ==10)
 	{
-		gpio_put(VFO_ENABLE_PIN,1);sleep_ms(2);gpio_put(GPS_ENABLE_PIN,0); //VFO off, GPS ON										
+		gpio_put(VFO_ENABLE_PIN,1);sleep_ms(2);gps_power_on_soft(); //VFO off, GPS ON (PWM soft start, see utilities.c)										
 		pctx->_pTX->_p_oscillator->_pGPStime->message_count=0;
 		start_time_of_GPS_search=get_absolute_time();		
 		SEQ=20;

@@ -71,6 +71,7 @@ The acronym starts with "Just Another" because (unlike the pico-WSPRer) this one
 * It's somewhat more expensive than a Traquito/Pi-Pico combination, and definitely more expensive than building a pico-WSPRer.
 * It only does WSPR on the HF ham bands. There's no VHF or LoRa APRS, and no LoRaWAN.
 * Configuration is done over a serial terminal. There's no browser-based or standalone GUI.
+* Running from small thin-film solar panels may need a capacitor across the power input; see the solar input notes under [Power requirements and specs](#power-requirements-and-specs).
 * The geofence uses 2° × 1° grid squares, so it also silences some nearby areas (for example Seoul, Dublin and Calais). The countries are fixed at compile time.
 * Use at your own risk. This is open-source hobby firmware, not a commercial product with a vendor behind it. A commercial tracker such as a U4B from QRP Labs or a WSPR-TX-pico from ZachTek comes from a reputable vendor with a good-faith obligation to give you a working device.
 * There's no RF output filtering on board. You can add your own if needed; see the disclaimer.
@@ -87,6 +88,16 @@ The intended power source is solar cells. At a nominal input voltage of **3.3 V*
 If you rely on the on-board MCP1640T to boost the input voltage, the current consumption **increases**. For example, at **2.5 V input (a typical 4-cell 52×19 mm panel), the input current while transmitting is about 80 mA.**
 
 The pin marked "5V" feeds a 3.3 V LDO regulator (XC6206), which then feeds VBUS. The MCP1640T boosts VBUS if needed. So "5V" is a universal power input that tolerates roughly 2 V to 6 V. If your power source will never exceed 3.3 V, you can wire it directly to the VBUS input and bypass the LDO.
+
+**Start-up and GPS power-on.** This firmware holds the GPS and the MS5351 off from the first moment after reset, and runs the boot countdown at 48 MHz instead of 125 MHz. It switches the GPS on gradually with a PWM ramp (about 100 ms), after the countdown and again after every transmit cycle. Switching the GPS on in one step can dip the 3.3 V rail enough to reset the board, even on USB power. That shows up as a reset right after `WSPR beacon init..` is printed. See "8. Startup power fix and GPS soft start" in the [README](../README.md#8-startup-power-fix-and-gps-soft-start-mainc-utilitiesc-wsprbeaconc).
+
+**Solar input: capacitor and zener.** Two hardware additions at the power input pads are recommended. Both are through-hole parts, soldered straight across "5V" and GND with short leads.
+- **A 22 µF capacitor.** With two PowerFilm MPT3.6-75 thin-film panels, the board ran fine on USB but reset at the GPS turn-on on solar until a 22 µF capacitor was added across the input.
+  - Use a radial X7R/X5R ceramic, rated 16 V or 10 V, or a dipped tantalum rated 16 V or more.
+  - Avoid aluminum electrolytics for flight; they lose most of their capacitance in the cold.
+- **A 5.6 V zener** (1N4734A, 1 W): band to "5V". The panels read over 6 V open-circuit on the bench and rise further in the cold, while the regulator's maximum operating input is 6.0 V. The panels limit the zener's current, so no resistor is needed.
+
+The reasons, part choices, how to check the zener's dissipation, and why 5.6 V rather than 5.1 V are in "9. Hardware notes" in the [README](../README.md#9-hardware-notes-solar-input-capacitor-and-zener).
 
 While a geofenced area is being crossed, the tracker skips its transmissions but keeps the GPS on so it can check again every 10 minutes. The average current is then about the GPS-active figure above.
 
@@ -118,7 +129,7 @@ Misc specs:
 
 ![screenshot](https://github.com/user-attachments/assets/963773fa-6b99-4e98-b477-37b5bbfdc14a)
 
-The screenshot is from an earlier build. This firmware's banner ends in `+ geofence v1`, and the settings list includes a line starting `Geofence: no TX over UK, Yemen, North Korea`.
+The screenshot is from an earlier build. This firmware's banner ends in `+ geofence v1 + startup power fix v2`, and the settings list includes the line `Geofence: no TX over UK, Yemen, North Korea`.
 
 Configuration is mostly self-explanatory. For example, to change the callsign press `C`, type your callsign and press Enter. See [Configuration menu reference](#configuration-menu-reference) for every option.
 
@@ -135,6 +146,7 @@ Some other tips:
     * **1 blink, then a pause:** waiting for a valid GPS fix; not transmitting.
     * **2 blinks, then a pause:** valid GPS fix; waiting for the start of the timeslot to transmit.
     * **3 blinks, then a pause:** transmitting, with the GPS receiver powered off.
+    * **The countdown blinking repeats over and over:** the board is resetting during or at the end of boot. A reset right after `WSPR beacon init..` is the GPS power-on surge. On solar panels, check that the input capacitor is fitted. See the start-up and solar input notes under [Power requirements and specs](#power-requirements-and-specs).
     * **"Breathing" (brightness slowly rising and falling):** corrupted data was detected in NVRAM. The tracker reboots automatically after about 10 seconds and tries again. Press any key during breathing to enter the menu and fix the settings.
 
 ---
@@ -223,7 +235,7 @@ cmake -S . -B build-out -G Ninja
 ninja -C build-out
 ```
 
-The result is `build-out/JAWBONE.uf2`. The shipped `build/JAWBONE.uf2` was built with Pico SDK 2.3.1, pico-extras commit `52fd7a7` and arm-none-eabi-gcc 13.2.1. The older `./build.sh` script also works.
+The result is `build-out/JAWBONE.uf2`. The shipped `build/JAWBONE.uf2` was built with Pico SDK 2.2.0 (the same version as the original JAWBONE firmware), pico-extras tag `sdk-2.2.0` and arm-none-eabi-gcc 13.2.1. To match it, clone with `--branch 2.2.0` and `--branch sdk-2.2.0`. The older `./build.sh` script also works.
 
 To test the scheduler and geofence on a PC without any hardware, run `tests/host/run_tests.sh`. It only needs `gcc`.
 

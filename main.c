@@ -16,6 +16,7 @@
 #include "defines.h"
 #include <math.h>
 #include "pico/stdlib.h"
+#include "pico/runtime.h"     // PICO_RUNTIME_INIT_FUNC_HW (startup power fix)
 #include "hardware/watchdog.h"
 #include "hardware/uart.h"
 #include "pico/sleep.h"      
@@ -74,9 +75,36 @@ const uint32_t freqs[14] =   							//A:LF,B:MF,C:160,D:80,E:60,F:40,G:30,H:20,I
     {137500,475700,1838100,3570100,5288700,7040100,10140200,14097100,18106100,21096100,24926100,28126100,50294500,144490500}; 
 
 
+/* ---------------- STARTUP POWER FIX ----------------
+   The GPS and MS5351 power switches are P-channel MOSFETs that turn ON when their control pin
+   (GPS_ENABLE_PIN / VFO_ENABLE_PIN) is LOW. After reset every RP2040 GPIO is an input with a weak
+   pull-down, so depending on the gate pull-up the GPS (and synthesizer) could be powered for the
+   whole ~8 s boot countdown, before InitPicoPins() ever drives the pins. On a current-limited
+   solar supply that extra load (plus GPS startup surge) can collapse the supply and reset the board
+   partway through the countdown, over and over.
+   hold_power_switch_off() drives a pin HIGH (switch off) without ever passing through a driven-low
+   state: output value is set to 1 before the output driver and SIO function are enabled. */
+static void hold_power_switch_off(uint pin)
+{
+	gpio_put(pin, 1);               // output latch high first
+	gpio_set_dir(pin, GPIO_OUT);    // enable output driver (still not connected to the pad)
+	gpio_set_function(pin, GPIO_FUNC_SIO);  // connect SIO to the pad: pin goes straight to HIGH
+}
+
+/* Runs from the SDK runtime initializers, right after the IO banks come out of reset (priority
+   00100) and BEFORE the crystal oscillator / PLL start-up (00500), i.e. within microseconds of reset
+   instead of after the boot countdown. */
+static void early_power_switches_off(void)
+{
+	hold_power_switch_off(GPS_ENABLE_PIN);
+	hold_power_switch_off(VFO_ENABLE_PIN);
+}
+PICO_RUNTIME_INIT_FUNC_HW(early_power_switches_off, "00110");
+
 int main()
 {
-	
+	set_sys_clock_khz(48000, true);   // STARTUP POWER FIX: run the boot countdown at 48 MHz instead of the SDK default 125 MHz to cut current draw.
+	                                  // 48 MHz keeps USB enumeration (config menu) reliable; the normal 18 MHz is set after the countdown as before.
 	StampPrintf("\n");DoLogPrint(); srand((unsigned int)time(NULL));// needed asap to wake up the USB stdio port (because StampPrintf includes stdio_init_all();). why though?
 	for (int i=0;i < 5;i++) {printf("*");sleep_ms(100);}			
  
@@ -724,7 +752,7 @@ check_data_validity_and_set_defaults(); //added may 2025, will this cause proble
 
 int band_as_int=_band[0]-'A';       
 printf(CLEAR_SCREEN);
-printf("JAWBONE (Just Another Wspr Beacon Of Noisy Electronics) by KC3LBR,  version (new CT may 2026) + geofence v1: %s %s\n\n",__DATE__ ,__TIME__);
+printf("JAWBONE (Just Another Wspr Beacon Of Noisy Electronics) by KC3LBR,  version (new CT may 2026) + geofence v1 + startup power fix v2: %s %s\n\n",__DATE__ ,__TIME__);
 printf(UNDERLINE_ON);printf(BRIGHT);
 printf("\n\nCurrent values:\n");printf(UNDERLINE_OFF);printf(NORMAL);
 
@@ -739,7 +767,7 @@ printf("Verbosity:%s\n\t",_verbosity);
 printf("Optional debug:%s\n\t",_Optional_Debug);
 //printf("custom Pcb IO mappings:%s\n\t",_custom_PCB);
 printf("Telemetry config:%s   (please set to '---' if unused)\n",_DEXT_config);
-printf("\tGeofence: no TX over UK, Yemen, North Korea (%d grid squares, see README)\n",geofence_square_count());
+printf("\tGeofence: no TX over UK, Yemen, North Korea\n");
 //printf("Klock speed (temp) :%sMhz  \n",_Klock_speed);
 /*printf("Datalog mode:%s\n\t",_Datalog_mode);
 printf("Battery (low power) mode:%s\n\t",_battery_mode);
@@ -787,10 +815,10 @@ void InitPicoPins(void)
 	gpio_set_dir(18, GPIO_OUT); //GPIO 18 used for fan control when testing TCXO stability */
 
 			gpio_for_onewire=ONEWIRE_bus_pin_pcb;			
-			gpio_init(GPS_ENABLE_PIN); gpio_set_dir(GPS_ENABLE_PIN, GPIO_OUT); //initialize GPS enable output (INVERSE LOGIC on custom PCB, so just initialize it, leave it at zero state)	
-			gpio_init(VFO_ENABLE_PIN); gpio_set_dir(VFO_ENABLE_PIN, GPIO_OUT); //initialize VFO synth enable output (INVERSE LOGIC on custom PCB)
-			gpio_put(GPS_ENABLE_PIN,1);
-			gpio_put(VFO_ENABLE_PIN,1);
+			//STARTUP POWER FIX: the original gpio_init() + gpio_set_dir(OUT) + gpio_put(1) sequence drove both
+			//enable pins LOW for a moment (gpio_init clears the output latch), briefly switching the GPS and MS5351 ON.
+			hold_power_switch_off(GPS_ENABLE_PIN);   //GPS enable output (INVERSE LOGIC: 1 = off)
+			hold_power_switch_off(VFO_ENABLE_PIN);   //VFO synth enable output (INVERSE LOGIC: 1 = off)
 			//this turn them BOTH off, must turn on later as needed
 	
 	dallas_setup();  //configures one-wire interface. Enabled pullup on one-wire gpio. must do this here, in case they want to use analog instead, because then pullup needs to be disabled below.

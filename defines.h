@@ -296,7 +296,6 @@ void Core1Entry(void);
 
 char* get_mh(double lat, double lon, int size);
 int is_position_geofenced(double lat, double lon);
-int geofence_square_count(void);
 char* complete_mh(char* locator);
 double mh2lon(char* locator);
 double mh2lat(char* locator);
@@ -304,6 +303,7 @@ double mh2lat(char* locator);
 //utilitieas
 
 void get_user_input(const char *prompt, char *input_variable, int max_length);
+void gps_power_on_soft(void);
 
 //nhash
 

@@ -7,6 +7,7 @@
 #include "hardware/clocks.h"
 #include "hardware/gpio.h"
 #include "hardware/adc.h"   
+#include "hardware/pwm.h"     // GPS soft start
 #define BUFFER_SIZE 256
 
 static char logBuffer[BUFFER_SIZE] = {0};
@@ -44,6 +45,52 @@ void get_user_input(const char *prompt, char *input_variable, int max_length) {
     input_variable[index] = '\0';  // Null-terminate the string
     printf("\n");
 }
+
+/* ---------------- GPS SOFT START ----------------
+   The GPS is powered through a P-channel MOSFET that is ON while GPS_ENABLE_PIN is LOW. Switching it
+   fully on in one step connects the GPS module's discharged capacitors straight onto the 3.3 V rail.
+   The rail then dips by charge sharing within microseconds, faster than any regulator (or USB) can
+   respond, and if it dips below the MAX809 threshold (~2.9 V) the board resets. That shows up as a
+   reset right after "WSPR beacon init..", or after every transmit cycle when the GPS is switched back on.
+   This ramps the switch on with PWM instead: 50 kHz, ON-time growing from 0 to 100 % over ~100 ms
+   (quadratic, so the first pulses are only tens of ns long), so the GPS capacitors charge in many
+   small steps. At 100 % the pin is handed back to plain GPIO, driven LOW, without any HIGH glitch. */
+void gps_power_on_soft(void)
+{
+    const uint pin   = GPS_ENABLE_PIN;
+    // Already fully on (plain GPIO driven LOW)? Then do nothing. Re-running the ramp would start at
+    // 0 % and briefly switch a running GPS OFF. (WSPRbeaconInit() turns the GPS on and the scheduler's
+    // first SEQ 10 pass asks for it again.)
+    if (gpio_get_function(pin) == GPIO_FUNC_SIO && gpio_is_dir_out(pin) && !gpio_get_out_level(pin)) return;
+    const uint slice = pwm_gpio_to_slice_num(pin);
+    const uint chan  = pwm_gpio_to_channel(pin);
+    uint32_t wrap = clock_get_hz(clk_sys) / 50000;          // 50 kHz PWM: 360 counts at 18 MHz
+    if (wrap < 20) wrap = 20;
+    if (wrap > 65535) wrap = 65535;
+
+    pwm_config cfg = pwm_get_default_config();
+    pwm_config_set_clkdiv_int(&cfg, 1);
+    pwm_config_set_wrap(&cfg, (uint16_t)(wrap - 1));
+    // Inverted output: the pin is LOW (GPS switch ON) while counter < level, HIGH otherwise.
+    pwm_config_set_output_polarity(&cfg, chan == PWM_CHAN_A, chan == PWM_CHAN_B);
+    pwm_init(slice, &cfg, false);
+    pwm_set_chan_level(slice, chan, 0);                     // level 0: pin stays HIGH (GPS off)
+    pwm_set_enabled(slice, true);
+    gpio_set_function(pin, GPIO_FUNC_PWM);                  // PWM now drives the pin, still HIGH
+
+    const int steps = 100;                                  // 100 steps x 1 ms = ~100 ms ramp
+    for (int i = 1; i <= steps; i++)
+    {
+        pwm_set_chan_level(slice, chan, (uint16_t)((wrap * (uint32_t)(i * i)) / (uint32_t)(steps * steps)));
+        sleep_us(1000);
+    }
+    // level == wrap: the pin is LOW for the whole period (GPS fully on). Hand over to SIO, also LOW.
+    gpio_put(pin, 0);
+    gpio_set_dir(pin, GPIO_OUT);
+    gpio_set_function(pin, GPIO_FUNC_SIO);
+    pwm_set_enabled(slice, false);
+}
+
 
 /*                                              -- hardcoded at 48Mhz for Kazu's PLL
 void InitPicoClock(int PLL_SYS_MHZ)
@@ -1019,11 +1066,6 @@ static const char *forbidden_grids[] = {
     "PM19","PM27","PM28","PM29","PM37","PM38","PM39","PM47","PM48","PM49","PN10","PN20",
     "PN21","PN30","PN31","PN32","PN40","PN41","PN42","PN43","PN50","PN51","PN52","PN53",
 };
-
-int geofence_square_count(void)
-{
-    return (int)(sizeof(forbidden_grids)/sizeof(forbidden_grids[0]));
-}
 
 int is_position_geofenced(double lat, double lon)
 {

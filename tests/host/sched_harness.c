@@ -28,6 +28,7 @@ static absolute_time_t delayed_by_us(absolute_time_t t, uint64_t d) { return t +
 static uint32_t to_ms_since_boot(absolute_time_t t) { return (uint32_t)(t / 1000); }
 static void gpio_put(int p, int v) { (void)p; (void)v; }
 static void sleep_ms(int ms) { (void)ms; }
+static void gps_power_on_soft(void) {}   /* PWM soft start (utilities.c): hardware only, mocked here */
 #define VFO_ENABLE_PIN 1
 #define GPS_ENABLE_PIN 2
 
