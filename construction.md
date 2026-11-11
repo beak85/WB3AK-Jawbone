@@ -1,3 +1,4 @@
+
 # Configuration
 
 ### Installing Firmware
@@ -45,6 +46,8 @@ Solder in the 22 µF tantalum capacitor of at least 10V rating across the 5v and
 with voltage regulators, then you want to use a 1W 5.6V Zener Diode across those terminals as well to prevent an overvoltage which
 can wreck the board.
 
+<img width="300" height="360" alt="cap" src="https://github.com/user-attachments/assets/416ef16c-bf69-468a-bfbf-d0225aef1d9c" />
+<img width="300" height="400" alt="cap_back" src="https://github.com/user-attachments/assets/ff59e183-3cc9-4ff5-8de4-fc540f19ee13" />
 
 - capacitor and zener diode
 - 
