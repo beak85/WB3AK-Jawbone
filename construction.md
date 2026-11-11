@@ -67,7 +67,7 @@ source and data pins.
 A stub antenna works well. Cut a short piece of magnet wire to 46mm. You can start slightly long, around 48 mm. If satellite count or fix time 
 is poor, trim about 1 mm at a time. The board itself functions as the ground plane, so nothing is needed on the ground pad.
 
-### soldering solar cells
+### Assemnbling and Soldering Solar Cells
 
 Solar cell configurations vary widely. The simplest is a flat panel that hangs horizontally. The problem with those is that they require higher
 solar angles (angle of the sun to the earth) before they turn on. Other configurations use paneles that angle towards the horizon or even hang
@@ -79,22 +79,33 @@ facing directly enough to the sun if (when) they spin. They also require more pa
 - PowerFilm is durable while crystalline cells snap if you look at them the wrong way.
 - Crystalline cells are more efficient and lighter weight than PowerFilm. 
 
-I have been flying PowerFilm configurations with my students because they are rugged and don't require great soldering skills.
+I have been flying PowerFilm configurations with my students because they are rugged and don't require great soldering skills. Some of my students
+have risen to the challenge and are trying crystalline cells.
 
-#### PowerFilm
+#### PowerFilm:
 
 
-#### Crystaline
+#### Crystaline:
 
-# cutting antennas and support lines
-  - weigh tubes
-  - 17ft
+#### Building the Supercap & Regulater (if used.)
+
+
+### Cutting the Antennas and support lines
+  - Get some carboard tubes to wind your antennas on. Weigh them NOW, while they are empty.
+  - Cut two wires at 17ft each for the 20M band.
+  - Cut a support line from braided, strong fishing line. Make it at least 18ft each, excess can be trimmed later.
+  - The platform should be supported by the fishing line, NOT the antenna wire.
+  - Use small bits of tape to attach the antenna to the support line. Leave some slack at the end to solder into the board.
+  - For the trailing leg of the dipole, make sure to attach it to the platform for strain relief. Don't let it hang by the solder joint.
+  - Wind each leg onto a tube (weight the tubes FIRST). The ends get wound on first, leaving some the free end to solder to the board.
+    
   
-# assemble payload
+### assemble payload
 
-# weighing and calculating payload
+### weighing and calculating payload
 
-  - weigh everything
-  - add ~7 grams of free lift
+  - Weigh everything in the payload.
+  - Subtract the weight of the tubes.
+  - add ~7 grams of free lift - this is the target lift for your balloon.
 
-# fill balloon
+### Fill the Balloon to the Target Lift
