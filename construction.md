@@ -67,7 +67,7 @@ source and data pins.
 A stub antenna works well. Cut a short piece of magnet wire to 46mm. You can start slightly long, around 48 mm. If satellite count or fix time 
 is poor, trim about 1 mm at a time. The board itself functions as the ground plane, so nothing is needed on the ground pad.
 
-### Assemnbling and Soldering Solar Cells
+### Assembling and Soldering Solar Cells
 
 Solar cell configurations vary widely. The simplest is a flat panel that hangs horizontally. The problem with those is that they require higher
 solar angles (angle of the sun to the earth) before they turn on. Other configurations use paneles that angle towards the horizon or even hang
