@@ -87,7 +87,7 @@ have risen to the challenge and are trying crystalline cells.
 
 #### Crystaline:
 
-#### Building the Supercap & Regulater (if used.)
+### Building the Supercap & Regulater (if used.)
 
 
 ### Cutting the Antennas and support lines
@@ -102,10 +102,10 @@ have risen to the challenge and are trying crystalline cells.
   
 ### assemble payload
 
-### weighing and calculating payload
+### Weighing and Calculating Payload and Desired Lift
 
   - Weigh everything in the payload.
   - Subtract the weight of the tubes.
-  - add ~7 grams of free lift - this is the target lift for your balloon.
+  - add ~7 grams of free lift - this is the target net lift for your balloon.
 
 ### Fill the Balloon to the Target Lift
