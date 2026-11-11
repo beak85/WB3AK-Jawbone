@@ -62,8 +62,10 @@ the flat side, the source is on the right and data is the center pin. For these 
 source and data pins.
 
 
-- stubs for antenna
-- gps antenna
+## Installing the GPS Antenna
+
+A stub antenna works well. Cut a short piece of magnet wire to 46mm. Solder it into the GPS pad. The board itself functions as the ground
+plane, so nothing is needed on the ground pad.
 
 # soldering solar cells
 
