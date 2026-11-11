@@ -32,9 +32,22 @@
 <img width="671" height="355" alt="image" src="https://github.com/user-attachments/assets/26830313-3237-4183-94c1-f86505c14bdd" />
 
 
-# soldering tracker
+### Assembling and Soldering  the Ttracker
+
+#### If using PowerFilm Solar:
+
+PowerFilm (amorphous silicon) panels are high voltage, but low current. When the GPS switches on, or the booster draws a burst, 
+the board briefly wants more current than the panels can deliver. With only the panels feeding it, the input voltage will collapse 
+and the board will reset. A 22 µF capacitor supplies the burst for those microseconds to milliseconds, then the panels refill it.
+Use a tantalum capacitor - they do well with the extremely cold temperatures they will face.
+
+Solder in the 22 µF tantalum capacitor of at least 10V rating across the 5v and ground terminals. If you aren't using a supercap (below)
+with voltage regulators, then you want to use a 1W 5.6V Zener Diode across those terminals as well to prevent an overvoltage which
+can wreck the board.
+
 
 - capacitor and zener diode
+- 
 - temp sensor
 - stubs for antenna
 - gps antenna
