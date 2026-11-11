@@ -62,14 +62,29 @@ the flat side, the source is on the right and data is the center pin. For these 
 source and data pins.
 
 
-## Installing the GPS Antenna
+### Installing the GPS Antenna
 
-A stub antenna works well. Cut a short piece of magnet wire to 46mm. Solder it into the GPS pad. The board itself functions as the ground
-plane, so nothing is needed on the ground pad.
+A stub antenna works well. Cut a short piece of magnet wire to 46mm. You can start slightly long, around 48 mm. If satellite count or fix time 
+is poor, trim about 1 mm at a time. The board itself functions as the ground plane, so nothing is needed on the ground pad.
 
-# soldering solar cells
+### soldering solar cells
 
-- tabbing wire
+Solar cell configurations vary widely. The simplest is a flat panel that hangs horizontally. The problem with those is that they require higher
+solar angles (angle of the sun to the earth) before they turn on. Other configurations use paneles that angle towards the horizon or even hang
+vertically work too. In the winter months, when the sun doesn't get high in the sky, the horizontal panels struggle and may only communicate during mid-day
+or not at all if they are too far towards the pole. Vertical and angled panels require supercaps to support them for the times when they may not be 
+facing directly enough to the sun if (when) they spin. They also require more panels, which add weight.
+
+- Powerfilm is more expensive than crystaline panels. 
+- PowerFilm is durable while crystalline cells snap if you look at them the wrong way.
+- Crystalline cells are more efficient and lighter weight than PowerFilm. 
+
+I have been flying PowerFilm configurations with my students because they are rugged and don't require great soldering skills.
+
+#### PowerFilm
+
+
+#### Crystaline
 
 # cutting antennas and support lines
   - weigh tubes
